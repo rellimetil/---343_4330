@@ -1,3 +1,4 @@
+-- Load required libraries
 local http = require("socket.http")
 local ltn12 = require("ltn12")
 local json = require("dkjson")
